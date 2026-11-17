@@ -2935,8 +2935,8 @@ function restaurarAplica(novo) {
    Cada pessoa entra com a PRÓPRIA conta Google. Os dados ficam num arquivo escondido (appDataFolder)
    no Drive dela. Nenhum servidor do autor recebe nada.
    Para publicar: cole o "ID do cliente" (Google Cloud) em SYNC_CLIENT_ID abaixo, ou use o campo da página Sincronizar. */
-const SYNC_CLIENT_ID = '';
-const SYNC_BLOQ = !window.__SYNC_ON; /* sincronização em preparação: bloqueada para os usuários */
+const SYNC_CLIENT_ID = '572961631781-tn5cmlj4ctvjghaqf0aq3bk6t95pqi4l.apps.googleusercontent.com';
+const SYNC_BLOQ = false; /* sincronização liberada */
 const SYNC_FILE = 'estudo-total-dados.json', SYNC_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 const DRV = 'https://www.googleapis.com/drive/v3/files', DRV_UP = 'https://www.googleapis.com/upload/drive/v3/files';
 const SNAP_KEY = 'estudo_total_antes_da_sync', CID_KEY = 'et_gclient', DEV_KEY = 'et_device';
