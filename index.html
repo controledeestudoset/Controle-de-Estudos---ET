@@ -2915,13 +2915,13 @@ function pageExportar() {
 function pageBackup() {
   return `<div class="container">${head('Backup e dados', 'Faça cópias de segurança de tudo e, se precisar, recomece do zero.')}
   ${armAviso()}
-  <div class="av-hero">💾 Seus dados ficam <b>só neste navegador</b>. Faça backup com frequência (sugestão: toda semana) e <b>guarde o arquivo fora do aparelho</b> (Google Drive, OneDrive, e-mail ou pendrive).</div>
+  <div class="av-hero">💾 Seus dados ficam <b>neste navegador</b> (e no seu Google Drive, se a sincronização estiver ligada). A sincronização <b>não substitui o backup</b>: faça backup com frequência (sugestão: toda semana) e <b>guarde o arquivo fora do aparelho</b> (Google Drive, OneDrive, e-mail ou pendrive).</div>
   <div class="grid2"><div class="card"><h3>⬇️ Fazer backup</h3><p class="hint">Salva <b>tudo</b> (inclusive o que não cabe nas planilhas: assunto, questões, Estudo Sólido, metas, planejamento) em um arquivo .json.</p><div class="head-actions"><button class="btn-primary" onclick="exportJSON()">⬇️ Baixar backup (.json)</button></div></div>
   <div class="card"><h3>⬆️ Restaurar backup</h3><p class="hint">Volta os dados de um arquivo .json de backup. <b>Atenção:</b> isso <b>substitui todos</b> os dados atuais. Pedimos duas confirmações.</p><div class="head-actions"><label class="btn-sec" style="cursor:pointer">⬆️ Escolher arquivo de backup<input type="file" accept=".json" hidden onchange="restaurarAsk(this)"></label></div></div></div>
   <div class="card av-danger"><h3>🧹 Zerar dados</h3><p class="hint">Apaga estudos, diário, ciclo, revisões e matérias das planilhas, e recomeça do zero. <b>Não dá para desfazer.</b> Faça um backup antes! Pedimos duas confirmações.</p><button class="btn-danger" onclick="resetAsk()">Zerar tudo…</button></div></div>`;
 }
 function resetAsk() {
-  confirmar('Você vai apagar <b>TODOS</b> os seus dados (estudos, ciclo, revisões, matérias das planilhas).<br><br>Já fez um backup? Sem ele, <b>não há como recuperar</b>.', () => {
+  confirmar('Você vai apagar <b>TODOS</b> os seus dados (estudos, ciclo, revisões, matérias das planilhas).<br><br>Já fez um backup? Sem ele, <b>não há como recuperar</b>.' + (S.sync && S.sync.on ? '<br><br>⚠️ Com a sincronização ligada, os dados também serão <b>apagados da nuvem e dos seus outros aparelhos</b>.' : ''), () => {
     setTimeout(() => confirmar('<b>ÚLTIMA CONFIRMAÇÃO.</b><br><br>Tudo será apagado agora e <b>não poderá ser desfeito</b>. Tem certeza absoluta?', resetAll2, 'Sim, apagar tudo', '⚠️ Apagar tudo?'), 150);
   }, 'Continuar', '⚠️ Zerar dados?');
 }
@@ -2929,7 +2929,7 @@ function restaurarAsk(input) {
   const f = input.files[0]; if (!f) return; const rd = new FileReader();
   rd.onload = () => {
     let novo; try { novo = normalize(JSON.parse(rd.result)); if (!novo || typeof novo !== 'object' || !Array.isArray(novo.diario)) throw 0; } catch (e) { alert('Arquivo de backup inválido.'); input.value = ''; return; }
-    confirmar(`Restaurar o backup <b>${esc(f.name)}</b> (${novo.diario.length} registros no Diário)?<br><br>Isso <b>substitui todos</b> os dados atuais deste aparelho.`, () => {
+    confirmar(`Restaurar o backup <b>${esc(f.name)}</b> (${novo.diario.length} registros no Diário)?<br><br>Isso <b>substitui todos</b> os dados atuais deste aparelho.${S.sync && S.sync.on ? '<br><br>⚠️ Com a sincronização ligada, a nuvem e os seus outros aparelhos também passam a ter os dados do backup.' : ''}`, () => {
       setTimeout(() => confirmar('<b>ÚLTIMA CONFIRMAÇÃO.</b><br><br>Os dados atuais serão substituídos pelos do backup. Se quiser guardá-los, faça um backup antes de continuar.', () => restaurarAplica(novo), 'Sim, restaurar', '⚠️ Restaurar backup?'), 150);
     }, 'Continuar', '⚠️ Restaurar backup?');
     input.value = '';
@@ -3213,30 +3213,30 @@ function pageAviso() {
   <li><b>NÃO SUBSTITUI, em hipótese alguma, o curso dela.</b> Sem ter feito o curso, você não saberá o que cada campo significa nem por que estudar daquele jeito.</li></ul>
   <p class="hint-p">O que ela é: <b>apenas outra forma de controlar os seus estudos, no lugar das planilhas do Google Sheets / Excel.</b> Sempre que houver dúvida de método, vale o que o curso ensina, não o que esta ferramenta mostra.</p></div>
 
-  <div class="card av-card av-danger"><h3>3. Seus dados ficam só no seu navegador. Faça BACKUP!</h3>
-  <p>Tudo o que você registra é salvo <b>localmente, no navegador deste aparelho</b>. Isso significa:</p>
+  <div class="card av-card av-danger"><h3>3. Seus dados ficam no seu navegador. Faça BACKUP!</h3>
+  <p>Tudo o que você registra é salvo <b>localmente, no navegador deste aparelho</b>. Isso significa que, <b>sem a sincronização com o Google ligada</b> (veja o item 4):</p>
   <ul><li>Se você <b>trocar de navegador</b> (Chrome → Edge, por exemplo), os dados <b>não aparecem</b> no outro.</li>
   <li>Se abrir em <b>outro aparelho</b> (tablet, celular, outro computador), ele começa <b>vazio</b>. Os dados não vão sozinhos de um aparelho para o outro.</li>
-  <li>Se <b>limpar os dados de navegação</b>, usar <b>aba anônima/privada</b> ou reinstalar o navegador, você <b>perde tudo</b>.</li>
-  <li>Se o computador <b>quebrar, for roubado ou "pegar fogo", já era.</b> Não existe cópia em lugar nenhum.</li></ul>
+  <li>Se <b>limpar os dados de navegação</b>, usar <b>aba anônima/privada</b> ou reinstalar o navegador, você <b>perde tudo</b> o que estava neste aparelho.</li>
+  <li>Se o computador <b>quebrar, for roubado ou "pegar fogo", já era.</b> Sem sincronização e sem backup, não existe cópia em lugar nenhum.</li></ul>
   <p><b>Por isso, faça backup com frequência</b> (sugestão: ao fim de toda semana de estudo):</p>
   <ol><li>Vá em <b>Backup e dados</b> (menu lateral) e use o <b>Backup (.json)</b>.</li><li><b>Guarde o arquivo fora do aparelho</b>: Google Drive, OneDrive, e-mail ou pendrive.</li><li>Para recuperar, use <b>Restaurar backup</b> na mesma página.</li></ol>
   <p class="hint-p">O arquivo do <b>Backup (.json)</b> é o único que guarda <b>tudo</b>. As planilhas exportadas levam só os dados que cabem nas planilhas originais.</p></div>
 
-  <div class="card av-card"><h3>4. Sincronização e salvamento na nuvem</h3>
-  <p>Hoje <b>não há sincronização automática</b> entre aparelhos. Existe uma opção <b>em desenvolvimento</b> para sincronizar dispositivos e salvar na nuvem, para tornar o uso mais seguro. Enquanto ela não estiver disponível para você, o backup manual é a sua proteção.</p>
-  <p>Mesmo quando houver, <b>será opcional: fica a critério de cada pessoa usar ou não.</b> Ela não dispensa o hábito de fazer backup.</p></div>
+  <div class="card av-card"><h3>4. Sincronização e salvamento na nuvem (opcional)</h3>
+  <p>Você pode ligar a sincronização em <b>Sincronizar</b> (menu lateral) com <b>Entrar com Google</b>. Ela salva uma cópia dos seus dados num arquivo escondido, <b>na sua própria conta do Google Drive</b>, e mantém o mesmo plano no computador, no tablet e no celular. O autor do programa <b>não recebe nem vê</b> os seus dados.</p>
+  <p><b>É opcional:</b> fica a critério de cada pessoa usar ou não. Ela também <b>não dispensa o backup</b>: se você apagar um dado, ou usar <b>Zerar tudo</b>, ele some também na nuvem e nos outros aparelhos. O <b>Backup (.json)</b> continua sendo a sua proteção contra erros.</p></div>
 
   <div class="card av-card"><h3>5. Outros cuidados</h3>
   <ul><li><b>Sem garantias.</b> A ferramenta é oferecida <b>"como está"</b>. Pode ter erros. Confira os números importantes (horas, metas, ciclo) com o que o curso ensina e com as suas planilhas.</li>
   <li><b>Sugestões são só sugestões.</b> Os avisos, metas e comparações do programa não são ordens. A decisão sobre como estudar é <b>sua</b>.</li>
-  <li><b>Privacidade.</b> Nada é enviado a ninguém. Seus dados ficam no seu aparelho (e, se você ligar a sincronização, na sua própria conta Google).</li>
+  <li><b>Privacidade.</b> O autor do programa não recebe os seus dados. Eles ficam no seu aparelho (e, se você ligar a sincronização, na sua própria conta Google).</li>
   <li><b>Não compartilhe o seu backup</b> com desconhecidos: ele contém todo o seu histórico de estudo.</li>
   <li><b>Comece pelo "Comece Aqui".</b> Ele leva você pelos passos na ordem certa.</li></ul></div>
 
   <div class="card ${ok ? '' : 'av-confirm'}"><h3>${ok ? '✅ Você confirmou a leitura' : '✍️ Confirme que leu e entendeu'}</h3>
   ${ok ? `<p class="hint-p">Confirmado em ${new Date(S.aviso.ts).toLocaleString('pt-BR')}. Você pode reler este aviso sempre que quiser.</p><div class="head-actions"><button class="btn-sec" onclick="avReler()">Marcar como não lido</button><button class="btn-sec" onclick="guiaAbrir()">🚀 Ir para o Comece Aqui</button></div>`
-  : `${ck('a', 'Entendi que esta ferramenta <b>não é da Nazli</b> e que ela e o curso <b>não respondem</b> por ela nem dão suporte.')}${ck('b', 'Entendi que ela <b>não é um curso</b> e <b>não substitui</b> o Curso Estudo Total: é só uma outra forma de controle no lugar das planilhas.')}${ck('c', 'Entendi que os dados ficam <b>só neste navegador</b> e que preciso fazer <b>backup com frequência</b>.')}
+  : `${ck('a', 'Entendi que esta ferramenta <b>não é da Nazli</b> e que ela e o curso <b>não respondem</b> por ela nem dão suporte.')}${ck('b', 'Entendi que ela <b>não é um curso</b> e <b>não substitui</b> o Curso Estudo Total: é só uma outra forma de controle no lugar das planilhas.')}${ck('c', 'Entendi que os dados ficam <b>neste navegador</b> (e na minha conta Google, se eu ligar a sincronização) e que preciso fazer <b>backup com frequência</b>.')}
   <div class="head-actions"><button class="btn-primary" ${tudo ? '' : 'disabled'} onclick="avConfirma()">Li tudo e entendi</button>${tudo ? '' : '<span class="hint-p">Marque as três caixas para continuar.</span>'}</div>`}</div></div>`;
 }
 /* ================= TEMAS ================= */
