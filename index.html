@@ -2998,6 +2998,7 @@ function syLoadGis() {
   });
   return SY.gis;
 }
+const SY_MSG_ESCOPO = 'Faltou a permissão do Google Drive. Clique em Reconectar e, na tela do Google, aceite o acesso aos dados do aplicativo no Drive (se houver caixas para marcar, marque todas).';
 async function syToken(interativo) {
   if (SY.tok && SY.exp > Date.now() + 60000) return;
   const cid = syClientId(); if (!cid) throw { code: 'config', msg: 'Falta o ID do cliente Google (veja a página Sincronizar).' };
@@ -3005,16 +3006,23 @@ async function syToken(interativo) {
   await new Promise((ok, no) => {
     SY.tc = google.accounts.oauth2.initTokenClient({
       client_id: cid, scope: SYNC_SCOPE,
-      callback: r => { if (r.error) no({ code: 'auth', msg: 'Login não concluído (' + r.error + ').' }); else { SY.tok = r.access_token; SY.exp = Date.now() + (r.expires_in || 3600) * 1000; ok(); } },
+      callback: r => { let escopoOk = true; try { escopoOk = google.accounts.oauth2.hasGrantedAllScopes(r, SYNC_SCOPE); } catch (e) { } if (r.error) no({ code: 'auth', msg: 'Login não concluído (' + r.error + ').' }); else if (!escopoOk) { SY.forcar = true; no({ code: 'auth', msg: SY_MSG_ESCOPO }); } else { SY.forcar = false; SY.tok = r.access_token; SY.exp = Date.now() + (r.expires_in || 3600) * 1000; ok(); } },
       error_callback: e => no({ code: 'auth', msg: e && e.type === 'popup_blocked_by_browser' ? 'O navegador bloqueou a janela de login. Toque em Reconectar.' : 'Login cancelado ou indisponível.' })
     });
-    SY.tc.requestAccessToken({ prompt: interativo ? '' : '' });
+    SY.tc.requestAccessToken({ prompt: SY.forcar ? 'consent' : '' });
   });
 }
 async function syApi(url, opt) {
   opt = opt || {}; const r = await fetch(url, Object.assign({}, opt, { headers: Object.assign({ Authorization: 'Bearer ' + SY.tok }, opt.headers || {}) }));
   if (r.status === 401) { SY.tok = ''; SY.exp = 0; throw { code: 'auth', msg: 'A sessão do Google expirou.' }; }
-  if (r.status === 403 || r.status === 429) { const t = await r.text(); throw { code: 'cota', msg: 'O Google recusou o pedido (' + r.status + '). Tente de novo em alguns minutos.', t }; }
+  if (r.status === 403 || r.status === 429) {
+    const t = await r.text(); let mot = ''; try { const j = JSON.parse(t).error || {}; mot = (j.errors && j.errors[0] && j.errors[0].reason) || j.status || ''; } catch (e) { }
+    if (/insufficient|scope/i.test(mot + t)) { SY.tok = ''; SY.exp = 0; SY.forcar = true; throw { code: 'auth', msg: SY_MSG_ESCOPO, t }; }
+    if (/accessNotConfigured|has not been used|is disabled/i.test(mot + t)) throw { code: 'cota', msg: 'A API do Google Drive não está ativada no projeto do programa. Avise quem publicou o programa (' + r.status + ').', t };
+    if (/storageQuotaExceeded/i.test(mot + t)) throw { code: 'cota', msg: 'O seu Google Drive está sem espaço livre (' + r.status + '). Libere espaço e tente de novo.', t };
+    if (/rateLimit|quota/i.test(mot + t)) throw { code: 'cota', msg: 'O Google limitou os pedidos por um instante (' + r.status + '). Tente de novo em alguns minutos.', t };
+    throw { code: 'cota', msg: 'O Google recusou o pedido (' + r.status + (mot ? ': ' + mot : '') + '). Se persistir, saia e entre de novo em Sincronizar, ou use outra conta Google.', t };
+  }
   if (!r.ok) throw { code: 'http', msg: 'Erro do Google Drive (' + r.status + ').' };
   return r;
 }
@@ -3052,7 +3060,6 @@ async function syncNow(interativo) {
       else if (!remotoMudou) { const o = await syUpdate(f.id, syPayload()); sy.baseMod = o.modifiedTime; sy.baseUpd = S.upd; syLog('alterações enviadas'); }
       else {
         const R = await syGet(f.id); off(); syValida(R); const RE = normalize(clone(R.estado)); ensureIdsDe(RE);
-        if (f.id !== sy.fileId && !syVazio(S) && !syVazio(RE)) { SY.ask = { R: RE, f }; syStatus('ask', 'Este aparelho e a nuvem já têm dados. Escolha como juntar.'); SY.busy = false; return; }
         if (syVazio(S) && f.id !== sy.fileId) { syAplicar(RE, false); sy.fileId = f.id; sy.baseMod = f.modifiedTime; sy.baseUpd = S.upd = RE.upd; mudou = true; syLog('dados baixados da nuvem'); }
         else if (!sujo) { syAplicar(RE, false); sy.baseMod = f.modifiedTime; sy.baseUpd = S.upd = RE.upd; mudou = true; syLog('dados novos baixados'); }
         else { const m = syMerge(clone(Object.assign({}, S, { sync: undefined })), RE); m.upd = Date.now(); syAplicar(m, true); sy.merge = Date.now(); mudou = true; const o = await syUpdate(f.id, syPayload()); sy.fileId = f.id; sy.baseMod = o.modifiedTime; sy.baseUpd = S.upd; syLog('dados dos dois aparelhos juntados'); }
