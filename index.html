@@ -2999,14 +2999,20 @@ function syLoadGis() {
   return SY.gis;
 }
 const SY_MSG_ESCOPO = 'Faltou a permissão do Google Drive. Clique em Reconectar e, na tela do Google, aceite o acesso aos dados do aplicativo no Drive (se houver caixas para marcar, marque todas).';
+/* o acesso do Google dura ~1 h: guardamos até vencer, para não pedir o login de novo ao atualizar a página */
+const TOK_KEY = 'et_gtok';
+function tokLer() { try { const o = JSON.parse(localStorage.getItem(TOK_KEY) || 'null'); return o && o.t && o.e > Date.now() + 60000 ? o : null; } catch (e) { return null; } }
+function tokGravar(t, e) { try { localStorage.setItem(TOK_KEY, JSON.stringify({ t, e })); } catch (x) { } }
+function tokLimpar() { try { localStorage.removeItem(TOK_KEY); } catch (e) { } }
 async function syToken(interativo) {
   if (SY.tok && SY.exp > Date.now() + 60000) return;
+  const g = tokLer(); if (g) { SY.tok = g.t; SY.exp = g.e; return; }
   const cid = syClientId(); if (!cid) throw { code: 'config', msg: 'Falta o ID do cliente Google (veja a página Sincronizar).' };
   await syLoadGis();
   await new Promise((ok, no) => {
     SY.tc = google.accounts.oauth2.initTokenClient({
       client_id: cid, scope: SYNC_SCOPE,
-      callback: r => { let escopoOk = true; try { escopoOk = google.accounts.oauth2.hasGrantedAllScopes(r, SYNC_SCOPE); } catch (e) { } if (r.error) no({ code: 'auth', msg: 'Login não concluído (' + r.error + ').' }); else if (!escopoOk) { SY.forcar = true; no({ code: 'auth', msg: SY_MSG_ESCOPO }); } else { SY.forcar = false; SY.tok = r.access_token; SY.exp = Date.now() + (r.expires_in || 3600) * 1000; ok(); } },
+      callback: r => { let escopoOk = true; try { escopoOk = google.accounts.oauth2.hasGrantedAllScopes(r, SYNC_SCOPE); } catch (e) { } if (r.error) no({ code: 'auth', msg: 'Login não concluído (' + r.error + ').' }); else if (!escopoOk) { SY.forcar = true; no({ code: 'auth', msg: SY_MSG_ESCOPO }); } else { SY.forcar = false; SY.tok = r.access_token; SY.exp = Date.now() + (r.expires_in || 3600) * 1000; tokGravar(SY.tok, SY.exp); ok(); } },
       error_callback: e => no({ code: 'auth', msg: e && e.type === 'popup_blocked_by_browser' ? 'O navegador bloqueou a janela de login. Toque em Reconectar.' : 'Login cancelado ou indisponível.' })
     });
     SY.tc.requestAccessToken({ prompt: SY.forcar ? 'consent' : '' });
@@ -3014,7 +3020,7 @@ async function syToken(interativo) {
 }
 async function syApi(url, opt) {
   opt = opt || {}; const r = await fetch(url, Object.assign({}, opt, { headers: Object.assign({ Authorization: 'Bearer ' + SY.tok }, opt.headers || {}) }));
-  if (r.status === 401) { SY.tok = ''; SY.exp = 0; throw { code: 'auth', msg: 'A sessão do Google expirou.' }; }
+  if (r.status === 401) { SY.tok = ''; SY.exp = 0; tokLimpar(); throw { code: 'auth', msg: 'A sessão do Google expirou.' }; }
   if (r.status === 403 || r.status === 429) {
     const t = await r.text(); let mot = ''; try { const j = JSON.parse(t).error || {}; mot = (j.errors && j.errors[0] && j.errors[0].reason) || j.status || ''; } catch (e) { }
     if (/insufficient|scope/i.test(mot + t)) { SY.tok = ''; SY.exp = 0; SY.forcar = true; throw { code: 'auth', msg: SY_MSG_ESCOPO, t }; }
@@ -3102,8 +3108,8 @@ function syConectar() {
 }
 function syDesconectar() {
   confirmar('Desligar a sincronização neste aparelho? Seus dados continuam aqui e na nuvem; só deixam de ser atualizados.', () => {
-    try { if (SY.tok && window.google && google.accounts) google.accounts.oauth2.revoke(SY.tok, () => { }); } catch (e) { }
-    SY.tok = ''; SY.exp = 0; SY.ask = null; S.sync = Object.assign({}, S.sync, { on: false, fileId: '', baseMod: '', baseUpd: 0 }); syStatus('off', ''); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } render(); toast('Sincronização desligada.');
+    try { const t = SY.tok || (tokLer() || {}).t; if (t) { if (window.google && google.accounts) google.accounts.oauth2.revoke(t, () => { }); else fetch('https://oauth2.googleapis.com/revoke', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'token=' + encodeURIComponent(t) }).catch(() => { }); } } catch (e) { }
+    tokLimpar(); SY.tok = ''; SY.exp = 0; SY.ask = null; S.sync = Object.assign({}, S.sync, { on: false, fileId: '', baseMod: '', baseUpd: 0 }); syStatus('off', ''); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } render(); toast('Sincronização desligada.');
   }, 'Desligar');
 }
 function sySalvaCid(v) { try { localStorage.setItem(CID_KEY, String(v || '').trim()); } catch (e) { } render(); toast('ID do cliente salvo.'); }
@@ -3135,7 +3141,7 @@ function pageSync() {
   const est = { ok: ['g', 'Sincronizado'], busy: ['b', 'Sincronizando…'], offline: ['y', 'Sem internet'], err: ['r', 'Erro'], auth: ['y', 'Precisa reconectar'], ask: ['y', 'Aguardando sua escolha'], off: ['', ''] }[SY.status] || ['', ''];
   const sujo = S.upd !== sy.baseUpd, snap = syTemSnap();
   return `<div class="container">${head('Sincronizar entre aparelhos', 'Use o mesmo plano no computador, no tablet e no celular, com a sua própria conta Google.')}
-  <details class="how" open><summary>❓ Como funciona (passo a passo)</summary><div class="how-b">
+  <details class="how"><summary>❓ Como funciona (passo a passo)</summary><div class="how-b">
   <p><b>1.</b> Clique em <b>Entrar com Google</b> e aceite. O programa só pode ver <b>um arquivo dele</b>, numa pasta escondida do seu Google Drive. Ele não enxerga o resto do seu Drive.</p>
   <p><b>2.</b> A partir daí, cada alteração sua é enviada sozinha para esse arquivo, poucos segundos depois. Ao abrir em outro aparelho, o programa baixa a versão mais recente.</p>
   <p><b>3.</b> No outro aparelho, abra <b>o mesmo endereço</b>, vá em Sincronizar, entre com a <b>mesma conta Google</b> e pronto.</p>
@@ -3144,7 +3150,7 @@ function pageSync() {
   <li><b>Privacidade:</b> seus dados ficam só na sua conta Google. O autor do programa não recebe nem vê nada. Veja a <a href="politica-de-privacidade.html" target="_blank" rel="noopener" style="color:var(--accent)">política de privacidade</a>.</li>
   <li><b>O que não sincroniza:</b> o tema de cores e o cronômetro em andamento (são de cada aparelho).</li>
   <li>A sincronização funciona abrindo o programa pelo <b>endereço publicado (https)</b>, não pelo arquivo solto no computador. Sem ela, use o backup em <i>Backup e dados</i>.</li></ul></div></details>
-  <details class="how" open><summary>🔐 Abriu em outro aparelho ou navegador? Autorize de novo</summary><div class="how-b">
+  <details class="how"><summary>🔐 Abriu em outro aparelho ou navegador? Autorize de novo</summary><div class="how-b">
   <p>A sincronização é <b>automática</b>: depois de conectada, cada alteração sobe sozinha. Mas, em <b>cada aparelho ou navegador novo</b> (e sempre que o programa for reaberto depois de um tempo), o Google pede uma <b>nova autorização de login</b>. Isso é uma regra de segurança do Google e acontece numa janelinha (pop-up).</p>
   <p><b>Se a janela não abrir sozinha e aparecer "Precisa reconectar"</b>, quase sempre o navegador <b>bloqueou o pop-up</b>. Para resolver:</p>
   <ol><li>Olhe o lado direito da barra de endereço: aparece um ícone de pop-up bloqueado (veja o exemplo abaixo).</li>
@@ -3152,6 +3158,11 @@ function pageSync() {
   <li>Volte aqui e clique em <b>Reconectar</b> (ou recarregue a página). Nas próximas vezes, o login passa a abrir sozinho.</li></ol>
   <p class="hint-p">Seus dados não se perdem nesse caso: continuam salvos no aparelho e sobem assim que a conexão voltar.</p>
   <img src="${SY_IMG_POPUP}" alt="Exemplo no Chrome: ícone de pop-up bloqueado na barra de endereço, com a opção Permitir sempre pop-ups e redirecionamentos marcada" style="max-width:100%;width:520px;height:auto;border:1px solid var(--border);border-radius:10px;display:block;margin-top:8px"></div></details>
+  <details class="how"><summary>⏱️ De hora em hora o Google pede uma renovação</summary><div class="how-b">
+  <p>O Google libera o acesso ao seu Drive por cerca de <b>1 hora de cada vez</b>. Quando esse tempo acaba, o programa pede um novo acesso sozinho, e uma <b>janelinha do Google pode abrir e fechar rapidamente</b>. Isso é normal: é uma regra de segurança do Google e não dá para evitá-la num programa que não tem servidor próprio.</p>
+  <ul><li>Se você <b>atualizar a página dentro dessa hora</b>, a sincronização continua sem pedir login de novo.</li>
+  <li>Para a renovação acontecer sozinha, o navegador precisa <b>permitir pop-ups</b> deste endereço (veja o bloco acima).</li>
+  <li>Se a janelinha não abrir, o status mostra <b>Precisa reconectar</b>: é só clicar em <b>Reconectar</b>. Nada se perde, os dados continuam salvos no aparelho.</li></ul></div></details>
   ${!ok ? `<div class="card"><div class="pl-note warn">⚠️ Você abriu o programa como <b>arquivo no computador</b>. O login do Google só funciona pelo endereço publicado (https). Abra pelo endereço para sincronizar, ou use o backup em <b>Exportar planilhas</b>.</div></div>` : ''}
   ${ok && !cid ? `<div class="card"><h3>⚙️ Configuração (uma vez só)</h3><p class="hint-p">Este programa ainda não tem o <b>ID do cliente Google</b>. Quem publica o programa cria esse ID de graça no Google Cloud (passo a passo no arquivo <b>guia-publicacao.html</b>) e cola aqui, ou direto no código (<code>SYNC_CLIENT_ID</code>).</p><div class="head-actions"><input class="cell" id="syCid" style="max-width:520px" placeholder="1234567890-abc...apps.googleusercontent.com"><button class="btn-primary" onclick="sySalvaCid($('syCid').value)">Salvar</button></div></div>` : ''}
   ${SY.ask ? `<div class="card" style="border-color:var(--info)"><h3>❓ Este aparelho e a nuvem já têm dados</h3><p class="hint-p">Neste aparelho: <b>${S.diario.length}</b> registros no Diário. Na nuvem: <b>${SY.ask.R.diario.length}</b>. Como você quer juntar?</p>
