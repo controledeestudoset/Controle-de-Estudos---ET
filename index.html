@@ -467,7 +467,45 @@ html[data-mode=light] .tbl .calc,html[data-mode=light] .cnt{font-weight:700}
 .fx-go.a{border-color:var(--primary)}
 .fx-go.m{border-color:#f59e0b}
 .fx-who{font-weight:700;white-space:nowrap}
+/* ===== Tela de Bloqueio por Chave de Acesso ===== */
+.lock-overlay{position:fixed;inset:0;background:rgba(11,17,32,0.98);backdrop-filter:blur(10px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px}
+.lock-box{background:var(--bg-card);border:1px solid var(--border);border-radius:18px;max-width:440px;width:100%;padding:34px 28px;text-align:center;box-shadow:0 20px 45px rgba(0,0,0,0.6);animation:lockPop .25s ease-out}
+@keyframes lockPop{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}
+.lock-icon{font-size:2.8rem;margin-bottom:10px;line-height:1}
+.lock-title{font-size:1.45rem;font-weight:700;color:var(--text-main);margin-bottom:8px}
+.lock-desc{font-size:.88rem;color:var(--text-muted);line-height:1.45;margin-bottom:22px}
+.lock-input-wrap{display:flex;flex-direction:column;gap:10px}
+.lock-input{width:100%;background:var(--bg-input);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text-main);font-size:1.05rem;font-weight:600;letter-spacing:1px;text-align:center;text-transform:uppercase;outline:none;transition:border-color .15s,box-shadow .15s}
+.lock-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 25%,transparent)}
+.lock-btn{width:100%;background:var(--primary);color:var(--on-primary);border:none;border-radius:10px;padding:12px;font-size:.95rem;font-weight:700;cursor:pointer;transition:background .15s,transform .1s}
+.lock-btn:hover{background:var(--primary-dark)}
+.lock-btn:active{transform:scale(0.98)}
+.lock-msg{min-height:22px;margin-top:12px;font-size:.84rem;font-weight:600}
+.lock-msg.err{color:var(--danger);animation:shake .3s}
+.lock-msg.ok{color:var(--ok)}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.lock-footer{margin-top:22px;padding-top:16px;border-top:1px solid var(--border);font-size:.78rem;color:var(--text-muted);line-height:1.4}
+.lock-footer span{color:var(--text-soft);font-weight:600}
 </style></head><body>
+<!-- Tela de Bloqueio por Chave de Acesso Individual -->
+<div id="lockScreen" class="lock-overlay" style="display:flex;">
+  <div class="lock-box">
+    <div class="lock-icon">🔒</div>
+    <div class="badge-concurso" style="margin-bottom:12px;">Controle de Estudos - ET</div>
+    <h2 class="lock-title">Acesso Restrito</h2>
+    <p class="lock-desc">Este sistema é de uso exclusivo para membros autorizados. Digite sua Chave de Acesso Individual para entrar.</p>
+    <div class="lock-input-wrap">
+      <input type="text" id="inpChaveAcesso" class="lock-input" placeholder="Ex: ET-SEUNOME-742" autocomplete="off" autocapitalize="characters" spellcheck="false" onkeydown="if(event.key==='Enter')verificarChaveAcesso()">
+      <button type="button" class="lock-btn" onclick="verificarChaveAcesso()">Desbloquear ➔</button>
+    </div>
+    <div id="lockMsg" class="lock-msg"></div>
+    <div class="lock-footer">
+      <span>Não possui uma chave?</span><br>
+      Solicite seu código individual diretamente ao administrador.
+    </div>
+  </div>
+</div>
+<script>try{const _k='et_acesso_liberado_v1',_s=localStorage.getItem(_k);if(_s){document.getElementById('lockScreen').style.display='none';}}catch(e){}</script>
 <div class="app">
   <aside id="sidebar"></aside>
   <div class="backdrop" onclick="document.body.classList.remove('menu-open')"></div>
@@ -496,6 +534,114 @@ html[data-mode=light] .tbl .calc,html[data-mode=light] .cnt{font-weight:700}
 </div></div>
 <script>
 'use strict';
+/* ================= CONTROLE DE ACESSO (CHAVES INDIVIDUAIS) ================= */
+const CHAVE_STORAGE_KEY = 'et_acesso_liberado_v1';
+
+/* Lista de Chaves Autorizadas (Formato: ET-NOME-3DIGITOS)
+   Você pode adicionar novas chaves aqui quando quiser liberar um amigo! */
+const CHAVES_AUTORIZADAS = [
+  'ET-ADMIN-777',     // Sua chave mestra principal
+  'ET-MEUACESSO-999', // Sua chave mestra alternativa
+  'ET-CONCURSO-2026', // Chave mestra de contingência
+  // Exemplos de chaves prontas para você distribuir:
+  'ET-MARCOS-742',
+  'ET-MARCOS-190',
+  'ET-LUCAS-318',
+  'ET-ANA-550',
+  'ET-ANA-912',
+  'ET-FELIPE-821',
+  'ET-GABRIEL-409',
+  'ET-JULIA-673',
+  'ET-BRUNA-104',
+  'ET-DIEGO-537',
+  'ET-PAULO-284',
+  'ET-RODRIGO-615',
+  'ET-MARIANA-392',
+  'ET-THIAGO-708'
+];
+
+/* Limpa hífen, espaços e pontuação para comparar a chave sem erro */
+const normChave = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+function checkAcessoLiberado() {
+  try {
+    const salva = localStorage.getItem(CHAVE_STORAGE_KEY);
+    if (!salva) return false;
+    const n = normChave(salva);
+    return CHAVES_AUTORIZADAS.some(c => normChave(c) === n);
+  } catch (e) {
+    return false;
+  }
+}
+
+function initAcesso() {
+  const el = document.getElementById('lockScreen');
+  if (!el) return;
+  if (checkAcessoLiberado()) {
+    el.style.display = 'none';
+  } else {
+    el.style.display = 'flex';
+    setTimeout(() => {
+      const inp = document.getElementById('inpChaveAcesso');
+      if (inp) inp.focus();
+    }, 200);
+  }
+}
+
+function verificarChaveAcesso() {
+  const inp = document.getElementById('inpChaveAcesso');
+  const msg = document.getElementById('lockMsg');
+  const el = document.getElementById('lockScreen');
+  if (!inp || !msg) return;
+  
+  const digitada = String(inp.value || '').trim();
+  if (!digitada) {
+    msg.className = 'lock-msg err';
+    msg.textContent = 'Por favor, digite sua chave de acesso.';
+    inp.focus();
+    return;
+  }
+  
+  const achada = CHAVES_AUTORIZADAS.find(c => normChave(c) === normChave(digitada));
+  if (achada) {
+    try {
+      localStorage.setItem(CHAVE_STORAGE_KEY, achada);
+    } catch (e) {}
+    msg.className = 'lock-msg ok';
+    msg.textContent = 'Chave autorizada! Desbloqueando...';
+    
+    let nomeAmigo = '';
+    const partes = achada.split('-');
+    if (partes.length >= 2 && partes[0] === 'ET') {
+      nomeAmigo = partes[1].charAt(0).toUpperCase() + partes[1].slice(1).toLowerCase();
+    }
+    
+    setTimeout(() => {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity .25s ease-out';
+      setTimeout(() => {
+        el.style.display = 'none';
+        if (typeof toast === 'function') {
+          toast(nomeAmigo ? `Bem-vindo(a), ${nomeAmigo}! Acesso liberado.` : 'Acesso liberado com sucesso!');
+        }
+      }, 250);
+    }, 350);
+  } else {
+    msg.className = 'lock-msg err';
+    msg.textContent = 'Chave incorreta ou não autorizada.';
+    inp.select();
+    inp.focus();
+  }
+}
+
+function pedirTrocaChave() {
+  const ativa = localStorage.getItem(CHAVE_STORAGE_KEY) || 'Nenhuma';
+  confirmar(`Chave ativa neste aparelho: <b>${esc(ativa)}</b>.<br><br>Deseja sair e bloquear este aparelho novamente?`, () => {
+    try { localStorage.removeItem(CHAVE_STORAGE_KEY); } catch (e) {}
+    location.reload();
+  }, 'Sair / Bloquear');
+}
+
 /* ================= ESTADO ================= */
 const KEY = 'estudo_total_v3';
 const FORMAS = ['PDF', 'Videoaula', 'Revisão Teórica', 'Questões', 'Avulso', 'Sólido'];
@@ -1477,7 +1623,7 @@ function renderSidebar() {
   <div class="nav-row">${it('controle', '🔁', 'Controle Estudo Total', '', "clickGrupo('controle')")}<button class="nav-arrow" title="${UI.ctlOpen ? 'Recolher' : 'Expandir'} submenus" onclick="toggleGrupo('controle')">${UI.ctlOpen ? '▴' : '▾'}</button></div>${UI.ctlOpen ? `<div class="nav-sub">${CTL_TABS.map(([k, l]) => `<button class="nav-item ${UI.page === 'controle' && UI.tab.controle === k ? 'active' : ''}" onclick="goCtl('${k}')">${l}</button>`).join('')}</div>` : ''}${it('pre', '📚', 'Estudo Total — Pré-edital')}<div class="nav-row">${it('pos', '🎯', 'Estudo Total — Pós-edital', '', "clickGrupo('pos')")}<button class="nav-arrow" title="${UI.posOpen ? 'Recolher' : 'Expandir'} submenus" onclick="toggleGrupo('pos')">${UI.posOpen ? '▴' : '▾'}</button></div>${UI.posOpen ? `<div class="nav-sub">${POS_TABS.map(([k, l]) => `<button class="nav-item ${UI.page === 'pos' && UI.tab.pos === k ? 'active' : ''}" onclick="goPos('${k}')">${l}</button>`).join('')}<button class="nav-item ${UI.page === 'finpos' ? 'active' : ''}" onclick="nav('finpos')">${S.fase === 'pos' ? '🏁 Finalizar Pós-edital' : '▶️ Iniciar Pós-edital'}</button></div>` : ''}
   <div class="side-bottom">${S.guia.fim ? '' : guiaBtn()}
   <div class="nav-section">Dados e aparência</div>
-${SYNC_BLOQ ? `<button class="nav-item nav-off" onclick="toast('☁️ Sincronização em preparação. Por enquanto, use o backup em “Backup e dados”.')" title="Em preparação"><span class="ico">☁️</span><span class="lbl">Sincronizar</span><span class="nav-badge">EM BREVE</span></button>` : it('sync', '☁️', 'Sincronizar', S.sync.on ? `<span class="nav-badge ${SY.status === 'ok' ? 'okb' : 'warn'}" title="${esc(SY.msg || 'Google Drive')}">${syRotulo()}</span>` : '')}${it('impexp', '🔄', 'Importar / Exportar', '', "nav('impexp')")}${it('backup', '💾', 'Backup e dados')}${instrGrupo()}${it('tema', '🎨', 'Temas')}
+${SYNC_BLOQ ? `<button class="nav-item nav-off" onclick="toast('☁️ Sincronização em preparação. Por enquanto, use o backup em “Backup e dados”.')" title="Em preparação"><span class="ico">☁️</span><span class="lbl">Sincronizar</span><span class="nav-badge">EM BREVE</span></button>` : it('sync', '☁️', 'Sincronizar', S.sync.on ? `<span class="nav-badge ${SY.status === 'ok' ? 'okb' : 'warn'}" title="${esc(SY.msg || 'Google Drive')}">${syRotulo()}</span>` : '')}${it('impexp', '🔄', 'Importar / Exportar', '', "nav('impexp')")}${it('backup', '💾', 'Backup e dados')}${it('chave', '🔑', 'Chave de Acesso', '', "pedirTrocaChave()")}${instrGrupo()}${it('tema', '🎨', 'Temas')}
   <div class="side-foot"><div class="lbl-sm" style="padding-left:4px">Fase atual <span class="qm" data-tip="Aqui você diz em que momento está:
 
 • Pré-edital = o edital ainda NÃO saiu. O Desempenho mostra os registros do Pré-edital.
@@ -1703,7 +1849,7 @@ document.addEventListener('dragover', e => { const d = e.target.closest && e.tar
 document.addEventListener('dragleave', e => { const d = e.target.closest && e.target.closest('.drop'); if (d) d.classList.remove('over'); });
 document.addEventListener('drop', e => { const d = e.target.closest && e.target.closest('.drop'); if (d) { e.preventDefault(); d.classList.remove('over'); if (e.dataTransfer.files[0]) impFile(d.dataset.kind, e.dataTransfer.files[0]); } });
 
-window.addEventListener('DOMContentLoaded', () => { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); carregarTema(); load(); drLoad(); if (!avLido() && !S.diario.length && !S.controle.ciclo.rows.length) UI.page = 'aviso'; else if (!S.guia.visto) { S.guia.visto = 1; if (!S.diario.length && !S.controle.ciclo.rows.length) UI.page = 'guia'; save(); } if (sitMigrar() | reconcileFim() | plNorm()) save(); render(); tmTick(); if (S.sync.on) setTimeout(() => syncNow(false), 800); const rgA = rgPend().filter(x => x.ag); if (UI.posIniAviso) setTimeout(() => toast(`Pós-edital já ativo: o Desempenho agora mostra só os dados desde ${fmtDate(S.posIni)}. Ajuste a data em Finalizar Pós-edital, se precisar.`), 300); if (rgA.length) setTimeout(() => toast(`🏆 Chegou o dia da Revisão Geral: ${rgA.map(x => x.m).join(', ')}. Faça e registre em Revisão Checkpoint.`), 600); });
+window.addEventListener('DOMContentLoaded', () => { initAcesso(); if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); carregarTema(); load(); drLoad(); if (!avLido() && !S.diario.length && !S.controle.ciclo.rows.length) UI.page = 'aviso'; else if (!S.guia.visto) { S.guia.visto = 1; if (!S.diario.length && !S.controle.ciclo.rows.length) UI.page = 'guia'; save(); } if (sitMigrar() | reconcileFim() | plNorm()) save(); render(); tmTick(); if (S.sync.on) setTimeout(() => syncNow(false), 800); const rgA = rgPend().filter(x => x.ag); if (UI.posIniAviso) setTimeout(() => toast(`Pós-edital já ativo: o Desempenho agora mostra só os dados desde ${fmtDate(S.posIni)}. Ajuste a data em Finalizar Pós-edital, se precisar.`), 300); if (rgA.length) setTimeout(() => toast(`🏆 Chegou o dia da Revisão Geral: ${rgA.map(x => x.m).join(', ')}. Faça e registre em Revisão Checkpoint.`), 600); });
 /* ================= REGISTRAR ESTUDO (cronômetro + lançamento integrado) ================= */
 const DKEY = 'estudo_rascunho_v1';
 const dr0 = () => ({ materia: '', aula: '', assunto: '', forma: 'PDF', fim: false, formaManual: false, pi: '', pf: '', vi: '', vf: '', vmin: '', ac: '', er: '', obs: '', data: '', minManual: '', sit: 'auto', pctCampo: 'p1', chkRev: true, chkAula: true, t: { run: false, start: 0, acc: 0 }, pomo: { on: false, min: 50, run: false, start: 0, acc: 0, done: false } });
