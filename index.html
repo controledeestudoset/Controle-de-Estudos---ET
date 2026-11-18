@@ -450,15 +450,20 @@ html[data-mode=light] .tbl .calc,html[data-mode=light] .cnt{font-weight:700}
 .prova-chip .cell{width:100%}
 .ie-sw{max-width:420px;margin:0 0 4px}.ie-sw button{flex:1}
 .fx-box{background:var(--bg-card,var(--card));border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin:0 0 14px}
-.fx-t{font-weight:700;margin-bottom:8px}
-.fx-strip{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.fx-ar{color:var(--text-muted)}
-.fx-chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.78rem;font-weight:600;border:1px solid var(--border)}
-.fx-chip.a{background:color-mix(in srgb,var(--primary) 14%,transparent);border-color:var(--primary)}
-.fx-chip.s{border-style:dashed;background:transparent;font-weight:500}
-.fx-chip.m{background:color-mix(in srgb,#f59e0b 16%,transparent);border-color:#f59e0b}
-.fx-leg{font-size:.76rem;color:var(--text-muted);margin:8px 0}
-.fx-ol{padding-left:20px;display:grid;gap:10px;font-size:.88rem;line-height:1.5}
+.fx-t{font-weight:700;margin-bottom:6px}
+.fx-intro{font-size:.86rem;color:var(--text-muted);margin:0 0 8px;line-height:1.5}
+.fx-flow{display:flex;flex-direction:column;gap:0}
+.fx-card{display:flex;gap:12px;border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--bg-card,var(--card))}
+.fx-n{flex:0 0 28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.85rem}
+.fx-c{flex:1;min-width:0}
+.fx-h{font-weight:700;font-size:.98rem}
+.fx-st{font-size:.8rem;color:var(--text-muted);margin:2px 0 6px}
+.fx-c p{margin:6px 0 0;font-size:.88rem;line-height:1.55}
+.fx-go{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;margin:0 0 0 14px;padding:8px 12px;border-left:3px solid;font-size:.85rem;line-height:1.5}
+.fx-go::before{content:'▼';margin-left:-22px;font-size:.7rem;color:var(--text-muted)}
+.fx-go.a{border-color:var(--primary)}
+.fx-go.m{border-color:#f59e0b}
+.fx-who{font-weight:700;white-space:nowrap}
 </style></head><body>
 <div class="app">
   <aside id="sidebar"></aside>
@@ -497,6 +502,8 @@ const semAula = f => ['Avulso', 'Questões', 'Revisão Teórica', 'Sólido'].inc
 function ehSolida(m) { if (S.fase === 'pos' || !m) return false; const r = S.controle.ciclo.rows.find(x => normA(x.materia) === normA(m)); return !!r && r.fase === 'Sólido'; }
 const formasPara = (m, atual) => FORMAS.filter(f => f !== 'Sólido' || atual === 'Sólido' || ehSolida(m));
 const SIT_AULA = ['Estudar', 'Revisar Checkpoint', 'Revisão Geral', 'Teoria ok'];
+/* o valor guardado continua 'Revisão Geral' (compatível com backups e sincronização); na tela a situação aparece como “Aguardando Revisão Geral” */
+const sitLbl = x => x === 'Revisão Geral' ? 'Aguardando Revisão Geral' : x;
 const STATUS = ['Pendente', 'Iniciada', 'Finalizada', 'Teoria ok'];
 const MAT_DEFAULT = ['Administração','Administração de Materiais','Administração Financeira e Orçamentária (AFO)','Administração Geral','Administração Pública','Análise das Demonstrações Contábeis','Análise de Dados','Arquitetura de Software','Arquivologia','Assistência Social / SUAS','Atendimento ao Público','Atendimento Bancário','Atualidades','Auditoria','Auditoria Governamental','Auditoria Privada','Auditoria Pública','Banco de Dados','Biblioteconomia','Big Data','Biologia','Ciência de Dados','Ciência Política','Ciências Atuariais','Comércio Exterior','Comunicação Social','Conhecimentos Bancários','Contabilidade Avançada','Contabilidade de Custos','Contabilidade Geral','Contabilidade Geral e Avançada','Contabilidade Pública','Controle Externo','Controle Interno','Criminalística','Criminologia','Desenvolvimento de Sistemas','DevOps / Cloud','Direito Administrativo','Direito Agrário','Direito Ambiental','Direito Civil','Direito Constitucional','Direito da Criança e do Adolescente / ECA','Direito de Trânsito','Direito Digital','Direito do Consumidor','Direito do Trabalho','Direito Econômico','Direito Eleitoral','Direito Empresarial','Direito Financeiro','Direito Internacional','Direito Notarial e Registral','Direito Penal','Direito Penal Militar','Direito Previdenciário','Direito Processual Civil','Direito Processual do Trabalho','Direito Processual Penal','Direito Processual Penal Militar','Direito Tributário','Direito Urbanístico','Direitos Humanos','Discursivas','Economia','Economia do Setor Público','Economia e Finanças Públicas','Engenharia de Segurança do Trabalho','Engenharia de Software','Epidemiologia','Espanhol','Estatística','Estatuto da Pessoa com Deficiência','Ética','Farmacologia / Vigilância Sanitária','Filosofia','Finanças Públicas','Física','Fluência em Dados','Geografia','Gestão de Pessoas','Gestão de Projetos','Gestão de Riscos','Governança de TI','História','Informática','Inglês','Legislação Aduaneira','Legislação Civil','Legislação de Trânsito','Legislação do SUS','Legislação Educacional','Legislação Especial','Legislação Institucional','Legislação Penal','Legislação Tributária','Legislação Tributária Estadual','Legislação Tributária Federal','Legislação Tributária Municipal','LGPD','Licitações e Contratos','Língua Portuguesa','Logística','Marketing','Matemática','Matemática Financeira','Medicina do Trabalho','Medicina Legal','Políticas Públicas','Química','Raciocínio Crítico','Raciocínio Lógico','Realidade Brasileira','Redação Oficial','Redes de Computadores','Regimento','Relações Internacionais','Saúde Pública','Segurança da Informação','Segurança Orgânica','Sistemas Operacionais','Sistema Normativo Anticorrupção','Sociologia','Sustentabilidade / ESG','Tecnologia da Informação','Vendas, Atendimento e Negociação'];
 
@@ -628,7 +635,7 @@ function IN(path, o = {}) {
 const NIN = (path, o = {}) => IN(path, Object.assign({ t: 'n', cls: 'num', step: 'any', min: 0 }, o));
 function SEL(path, opts, o = {}) {
   const v = getP(path) == null ? '' : getP(path);
-  return `<select class="cell ${o.cls || ''}" data-p="${path}" data-t="s" data-fk="${path}"${o.h ? ` data-h="${o.h}"` : ''}>${o.blank !== false ? `<option value=""${v === '' ? ' selected' : ''}>${esc(o.blank || '—')}</option>` : ''}${opts.map(x => `<option${x === v ? ' selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
+  return `<select class="cell ${o.cls || ''}" data-p="${path}" data-t="s" data-fk="${path}"${o.h ? ` data-h="${o.h}"` : ''}>${o.blank !== false ? `<option value=""${v === '' ? ' selected' : ''}>${esc(o.blank || '—')}</option>` : ''}${opts.map(x => `<option value="${esc(x)}"${x === v ? ' selected' : ''}>${esc(sitLbl(x))}</option>`).join('')}</select>`;
 }
 function TA(path, o = {}) { return `<textarea class="cell" data-p="${path}" data-t="s" data-fk="${path}"${o.ph ? ` placeholder="${esc(o.ph)}"` : ''}>${esc(getP(path) || '')}</textarea>`; }
 
@@ -975,7 +982,7 @@ function pageFinPos() {
   return `<div class="container">${head('Finalizar Pós-edital', 'Encerre a fase do edital e leve o que você estudou para os dados gerais (Pré-edital).')}
   <details class="how" open><summary>❓ O que acontece ao finalizar?</summary><div class="how-b">
   <p><b>Volta a aparecer:</b> o Desempenho e as métricas voltam a mostrar <b>todos</b> os registros (os de antes do Pós-edital e os do Pós-edital somados).</p>
-  <p><b>É transferido para o Pré-edital:</b> as matérias do Pós e as aulas com o seu andamento (Estudar, Revisar Checkpoint, Revisão Geral, Teoria ok). Se a matéria já existe no Pré, as aulas são mescladas; havendo a mesma aula nos dois, fica a mais avançada.</p>
+  <p><b>É transferido para o Pré-edital:</b> as matérias do Pós e as aulas com o seu andamento (Estudar, Revisar Checkpoint, Aguardando Revisão Geral, Teoria ok). Se a matéria já existe no Pré, as aulas são mescladas; havendo a mesma aula nos dois, fica a mais avançada.</p>
   <p><b>É zerado:</b> a planilha Pós-edital: Edital (matérias, pontos, pesos, mínimos), estimativas e horas do edital.</p>
   <p>Depois disso a fase atual muda para <b>Pré-edital</b>.</p></div></details>
   <div class="card"><h3>🎯 Situação do Pós-edital${S.posIni ? ' <small class="ds-sub">· iniciado em ' + fmtDate(S.posIni) + '</small>' : ''}</h3><div class="kpi-grid">${kpi('Matérias no Edital', r.mats, 'serão zeradas')}${kpi('Aulas no Pós', r.aulas, 'vão para o Pré-edital')}${kpi('Registros no Pós', dp.length, 'somam aos dados gerais', 'good')}${kpi('Horas no Pós', fmtH(hp), 'somam aos dados gerais', 'good')}</div>
@@ -1000,26 +1007,30 @@ const barMeta = (a, b) => { const r = b ? Math.max(0, Math.min(100, a / b * 100)
 const bar = (a, b) => `<div class="mini-bar"><div style="width:${b ? Math.min(100, a / b * 100) : 0}%"></div></div>`;
 
 /* ---------- Fluxo da matéria (explicação) ---------- */
-function fluxoMateria() {
-  const c = (cl, t) => `<span class="fx-chip ${cl}">${t}</span>`, ar = '<span class="fx-ar">→</span>';
-  return `<div class="fx-box"><div class="fx-t">🧭 O caminho de cada matéria</div>
-  <div class="fx-strip">${c('a', 'Pendente')}${ar}${c('a', 'Iniciada')}${c('s', '↻ Checkpoints durante o estudo (a cada 4 aulas)')}${ar}${c('m', 'Finalizada')}${ar}${c('m', 'Último checkpoint (se ainda pendente)')}${ar}${c('m', 'Revisão Geral')}${ar}${c('a', 'Teoria ok')}${ar}${c('m', 'Estudo Sólido')}</div>
-  <div class="fx-leg"><span class="fx-chip a">automático</span> o programa muda sozinho &nbsp; <span class="fx-chip m">você age</span> você marca ou registra</div>
-  <details class="how" ${UI.fxOpen ? 'open' : ''} ontoggle="UI.fxOpen=this.open"><summary>📖 Explicação passo a passo (clique para abrir)</summary><div class="how-b">
-  <ol class="fx-ol">
-  <li><b>Pendente</b> <i>(automático)</i><br>A matéria está no ciclo, mas você ainda não registrou nenhum estudo dela.</li>
-  <li><b>Iniciada</b> <i>(automático)</i><br>Vira assim que você registra o <b>primeiro estudo</b> da matéria em <b>Registrar estudo</b>.<br>
-    Enquanto você estuda, a cada aula/assunto que terminar por completo, marque a caixinha <b>“Finalizado”</b> no Registrar estudo (precisa do Nº da aula e do assunto). <b>Essa caixinha é da aula, não da matéria:</b> a aula passa para “Revisar Checkpoint” e o status da matéria continua Iniciada.<br>
-    <b>Checkpoints durante o estudo:</b> a cada <b>4 aulas finalizadas</b> chega um checkpoint, ainda com a matéria em andamento. Você revisa o bloco, registra os acertos e erros em <b>Revisão Checkpoint</b>, e as 4 aulas passam para “Revisão Geral” (situação da aula). Os checkpoints não esperam a matéria terminar.</li>
-  <li><b>Finalizada</b> <i>(você marca)</i><br>Terminou <b>toda a teoria</b> da matéria? Vá em <b>Revisão Checkpoint</b>, abra a matéria e clique em <b>“Matéria finalizada”</b>. O Ciclo muda sozinho para Finalizada. As aulas que ainda não estavam finalizadas são finalizadas junto, e o <b>último grupo</b> (mesmo com menos de 4 aulas) ganha o seu checkpoint.</li>
-  <li><b>Último checkpoint (se ainda pendente)</b> <i>(você registra)</i><br>Quando você finaliza a matéria, pode haver checkpoint pendente: o <b>último grupo de aulas</b> (muitas vezes com menos de 4) só ganha o seu checkpoint depois da finalização, e algum checkpoint anterior que você ainda não fez também continua na lista. Faça todos. Se você já estava em dia, este passo não existe e a Revisão Geral é liberada direto.</li>
-  <li><b>Revisão Geral</b> <i>(você registra)</i><br>É liberada só depois de <b>todos os checkpoints feitos</b> (inclusive o último), e o programa avisa. É a revisão da <b>matéria inteira</b>: um refresh no conteúdo para deixá-la consolidada. Você pode agendar a data e registra o resultado em Revisão Checkpoint.</li>
-  <li><b>Teoria ok</b> <i>(automático)</i><br>Vira depois que você <b>registra a Revisão Geral</b>. As aulas ficam com “Teoria ok” e o Ciclo passa a mostrar <b>Teoria ok</b>.</li>
-  <li><b>Estudo Sólido</b> <i>(você confirma)</i><br>Ao chegar em Teoria ok, o programa pergunta se você quer <b>passar a matéria para Sólido</b>. Se confirmar, a <b>fase</b> da matéria no Ciclo vira Sólido (o tempo sugerido dela diminui) e o tipo de estudo <b>Sólido</b> fica disponível: revisão contínua por questões.</li>
-  </ol>
-  <p class="hint-p"><b>Situação de cada aula:</b> Estudar → Revisar Checkpoint (aula finalizada) → Revisão Geral (checkpoint feito) → Teoria ok (depois da revisão geral da matéria).</p>
+function fluxoMateria(noCiclo) {
+  const go = (t, txt) => `<div class="fx-go ${t === 'a' ? 'a' : 'm'}"><span class="fx-who">${t === 'a' ? '⚙️ O programa muda sozinho' : '👆 Você faz'}</span><span>${txt}</span></div>`;
+  const card = (n, tit, stt, corpo) => `<div class="fx-card"><div class="fx-n">${n}</div><div class="fx-c"><div class="fx-h">${tit}</div><div class="fx-st">${stt}</div>${corpo}</div></div>`;
+  return `<div class="fx-box"><div class="fx-t">🧭 O caminho de cada matéria, do começo ao Estudo Sólido</div>
+  <p class="fx-intro">Cada matéria passa por 6 etapas, do primeiro estudo até o Estudo Sólido. Entre uma etapa e outra, está indicado se o programa muda sozinho ou se é você quem precisa fazer algo. ${noCiclo ? 'O status de cada matéria aparece na tabela do Ciclo, logo abaixo.' : 'O status de cada matéria aparece na tabela do Ciclo de Estudos.'}</p>${noCiclo ? '' : `<div class="head-actions" style="margin:0 0 8px"><button class="btn-sec" onclick="nav('controle');setTab('controle','ciclo')">🔁 Ir para o Ciclo de Estudos</button></div>`}
+  <details class="how" ${UI.fxOpen ? 'open' : ''} ontoggle="UI.fxOpen=this.open"><summary>📖 Ver o caminho completo, etapa por etapa (clique para abrir)</summary><div class="how-b fx-flow">
+  ${card(1, 'Pendente', 'Status no Ciclo: <b>Pendente</b>', '<p>A matéria está no ciclo, mas você ainda não registrou nenhum estudo dela.</p>')}
+  ${go('a', 'Assim que você registra o <b>primeiro estudo</b> da matéria em Registrar estudo, o status muda para <b>Iniciada</b>.')}
+  ${card(2, 'Iniciada: você está estudando as aulas', 'Status no Ciclo: <b>Iniciada</b>', `<p><b>Aulas:</b> quando terminar uma aula, marque a caixinha <b>“Finalizado”</b> no Registrar estudo (é preciso informar o Nº da aula e o assunto). Essa caixinha é <b>da aula</b>, não da matéria: a aula passa para a situação “Revisar Checkpoint” e a matéria continua Iniciada.</p>
+    <p><b>Checkpoints:</b> a cada <b>4 aulas finalizadas</b> o programa libera um checkpoint. Você o faz em <b>Revisão Checkpoint</b>: revisa essas 4 aulas e registra os acertos e erros. Depois disso, as 4 aulas passam para a situação “Aguardando Revisão Geral”. Os checkpoints são feitos <b>durante o estudo</b>: você não precisa esperar terminar a matéria.</p>`)}
+  ${go('m', 'Quando terminar <b>toda a teoria</b> da matéria, vá em <b>Revisão Checkpoint</b>, abra a matéria e clique no botão <b>“Matéria finalizada”</b>. O status no Ciclo passa para <b>Finalizada</b>.')}
+  ${card(3, 'Finalizada: a teoria acabou, faltam as revisões', 'Status no Ciclo: <b>Finalizada</b>', `<p>Ao clicar em “Matéria finalizada”, as aulas que ainda não estavam marcadas como finalizadas passam a contar como finalizadas.</p>
+    <p>Os checkpoints são de <b>4 em 4 aulas</b>. Por isso, quando a matéria termina, podem sobrar aulas que não completaram um grupo de 4. Exemplo: uma matéria com 10 aulas tem 2 grupos completos (aulas 1 a 4 e 5 a 8) e sobram 2 aulas (9 e 10). Agora essas aulas que sobraram também ganham um checkpoint: é o <b>último checkpoint</b> da matéria.</p>
+    <p>Por isso, nesta etapa <b>pode haver checkpoints ainda não feitos</b>: o último checkpoint (das aulas que sobraram) e qualquer outro que foi liberado durante o estudo e você deixou para depois. Faça todos em <b>Revisão Checkpoint</b>.</p>
+    <p>Se você já tinha feito todos os checkpoints e a matéria fechou em grupos completos de 4 aulas, não há nada pendente e a Revisão Geral é liberada na hora.</p>`)}
+  ${go('a', 'Quando você registra o <b>último checkpoint pendente</b>, o programa libera a Revisão Geral e avisa. Todas as aulas ficam na situação “Aguardando Revisão Geral”.')}
+  ${card(4, 'Aguardando Revisão Geral', 'Status no Ciclo: continua <b>Finalizada</b>', '<p>A <b>Revisão Geral</b> é a revisão da <b>matéria inteira</b>, para deixar o conteúdo consolidado. Você pode agendar a data. Depois de fazer a revisão, registre o resultado em <b>Revisão Checkpoint</b>.</p>')}
+  ${go('a', 'Quando você registra a <b>Revisão Geral</b>, o status muda para <b>Teoria ok</b>.')}
+  ${card(5, 'Teoria ok', 'Status no Ciclo: <b>Teoria ok</b>', '<p>A teoria da matéria está concluída e revisada. Todas as aulas ficam com a situação “Teoria ok”.</p>')}
+  ${go('m', 'O programa pergunta <b>“Passar a matéria para Sólido?”</b>. Se você confirmar, a <b>Fase</b> da matéria no Ciclo muda de Novo para <b>Sólido</b>.')}
+  ${card(6, 'Estudo Sólido', 'Fase no Ciclo: <b>Sólido</b>', '<p>Revisão contínua por questões. O tempo sugerido da matéria no ciclo diminui (ela passa a pesar 20%) e o tipo de estudo <b>Sólido</b> fica disponível em Registrar estudo.</p>')}
+  <p class="hint-p"><b>Situação de cada aula:</b> Estudar → Revisar Checkpoint (aula finalizada) → Aguardando Revisão Geral (checkpoint feito) → Teoria ok (Revisão Geral feita).</p>
   <p class="hint-p"><b>O que não entra nas revisões:</b> estudos dos tipos <b>Avulso</b>, <b>Questões</b>, <b>Revisão Teórica</b> e <b>Sólido</b> contam nas horas e nas estatísticas, mas não finalizam aula e não entram no Checkpoint nem na Revisão Geral.</p>
-  <p class="hint-p"><b>Errou algo?</b> Em Revisão Checkpoint dá para <b>desfazer</b> uma revisão e <b>reabrir a matéria</b> (se a revisão geral já foi feita, desfaça-a antes).</p>
+  <p class="hint-p"><b>Errou algo?</b> Em Revisão Checkpoint dá para <b>desfazer</b> um checkpoint ou a Revisão Geral e <b>reabrir a matéria</b>. Se a Revisão Geral já foi registrada, desfaça-a antes de reabrir.</p>
   </div></details></div>`;
 }
 const statusPill = s => `<span class="pill ${s === 'Finalizada' || s === 'Teoria ok' ? 'g' : s === 'Iniciada' ? 'y' : 'n'}">${s || 'Pendente'}</span>`;
@@ -1154,13 +1165,13 @@ function ctlCiclo() {
     <td>${SEL(`controle.ciclo.rows.${i}.dif`, ['1', '2', '3', '4', '5'])}</td><td>${NIN(`controle.ciclo.rows.${i}.ext`)}</td><td class="calc">${r.materia ? fmt(x.sug, 2) + 'h' : ''}</td>
     <td>${NIN(`controle.ciclo.rows.${i}.definido`, { ph: r.materia ? fmt(x.sug, 2) : '' })}</td><td class="calc">${r.materia ? fmt(x.real, 1) + 'h' : ''}</td>
     <td style="min-width:80px">${r.materia ? bar(x.real, x.def) : ''}</td><td style="min-width:118px">${SEL(`controle.ciclo.rows.${i}.status`, STATUS, { blank: false })}</td><td><button class="btn-x" onclick="delCicloRow(${i})">✕</button></td></tr>`; }).join('');
-  return `<div class="kpi-grid"><div class="kpi-card"><div class="kpi-title">Horas brutas semanais</div>${NIN('controle.horas', { cls: 'num', ph: '30' })}</div>${kpi('Qtd sugerida em Estudo Novo', k.qtdNovoSug, `Atual: ${k.qtdNovo} matéria(s) em "Novo"`, k.qtdNovo > k.qtdNovoSug && k.qtdNovoSug ? 'warn' : '')}${kpi('Qtd matérias no ciclo', k.qtdMat)}${kpi(`Ciclo nº ${c.numero}`, c.inicio ? 'desde ' + fmtDate(c.inicio) : 'todo o histórico', 'horas realizadas vêm do Diário')}</div>
-  ${fluxoMateria()}<div class="head-actions" style="margin-bottom:12px"><button class="btn-primary" onclick="addCicloRow()">➕ Matéria no ciclo</button><button class="btn-sec" onclick="setTab('controle','selecao')">Ver Seleção de matérias</button><button class="btn-danger" onclick="newCiclo()">🔄 Iniciar novo ciclo</button></div>
+  return `${fluxoMateria(true)}<div class="kpi-grid"><div class="kpi-card"><div class="kpi-title">Horas brutas semanais</div>${NIN('controle.horas', { cls: 'num', ph: '30' })}</div>${kpi('Qtd sugerida em Estudo Novo', k.qtdNovoSug, `Atual: ${k.qtdNovo} matéria(s) em "Novo"`, k.qtdNovo > k.qtdNovoSug && k.qtdNovoSug ? 'warn' : '')}${kpi('Qtd matérias no ciclo', k.qtdMat)}${kpi(`Ciclo nº ${c.numero}`, c.inicio ? 'desde ' + fmtDate(c.inicio) : 'todo o histórico', 'horas realizadas vêm do Diário')}</div>
+  <div class="head-actions" style="margin-bottom:12px"><button class="btn-primary" onclick="addCicloRow()">➕ Matéria no ciclo</button><button class="btn-sec" onclick="setTab('controle','selecao')">Ver Seleção de matérias</button><button class="btn-danger" onclick="newCiclo()">🔄 Iniciar novo ciclo</button></div>
   ${avisoPendentes()}
   <div class="pl-note">💡 <b>Dica:</b> você também pode cadastrar as <b>aulas/assuntos de cada matéria</b> no submenu <a href="#" onclick="setTab('controle','assuntos');return false" style="color:var(--accent)"><b>Aulas/Assuntos por matéria</b></a>. É opcional: serve de lista de sugestões na hora de registrar o estudo.</div>
   ${(() => { const nv = c.rows.filter(r => r.materia && r.fase !== 'Sólido').length, so = c.rows.filter(r => r.materia && r.fase === 'Sólido').length; return nv > 6 ? `<div class="aviso-ciclo">⚠️ Você tem ${nv} matérias em <b>Novo</b> no ciclo. O ideal é estudar no máximo <b>6 em Novo</b> ao mesmo tempo — passe para o fim da fila (ou retire com ✕) as que ficarão para depois.${so ? ` <span class="mu">(As ${so} em Sólido não entram nessa conta.)</span>` : ''}</div>` : ''; })()}
   <div class="legend-calc"><i style="background:rgba(16,185,129,.25)"></i>Colunas verdes são calculadas. Tempo sugerido (mín. 1h) = proporção de cada matéria (dificuldade, extensão e fase; Sólido pesa 0,2) × horas semanais. Deixe "Definido" em branco para usar o sugerido.</div>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Matéria</th><th>Fase</th><th>Dificuldade <span class="qm" data-tip="Escala de 1 (fácil) a 5 (muito difícil).">?</span></th><th>Extensão <span class="qm" data-tip="Coloque aqui o número de aulas da matéria.">?</span></th><th>Sugerido (h)</th><th>Definido (h)</th><th>Realizado</th><th>Progresso</th><th>Situação <span class="qm" data-tip="Muda sozinha: vira Iniciada quando você registra um estudo da matéria e Finalizada quando todas as aulas/assuntos cadastrados dela estão finalizados. Você também pode ajustar à mão.">?</span></th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--text-muted)">Nenhuma matéria no ciclo. Adicione aqui ou envie da Seleção de matérias.</td></tr>'}</tbody>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Matéria</th><th>Fase</th><th>Dificuldade <span class="qm" data-tip="Escala de 1 (fácil) a 5 (muito difícil).">?</span></th><th>Extensão <span class="qm" data-tip="Coloque aqui o número de aulas da matéria.">?</span></th><th>Sugerido (h)</th><th>Definido (h)</th><th>Realizado</th><th>Progresso</th><th>Status <span class="qm" data-tip="Muda sozinho: vira Iniciada quando você registra o primeiro estudo da matéria; vira Finalizada quando você clica em “Matéria finalizada” na Revisão Checkpoint; e vira Teoria ok depois que você registra a Revisão Geral. O caminho completo está explicado no quadro no topo desta página.">?</span></th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--text-muted)">Nenhuma matéria no ciclo. Adicione aqui ou envie da Seleção de matérias.</td></tr>'}</tbody>
 </table></div>
   ${c.rows.length ? `<div class="ciclo-total"><span class="t">Total do ciclo</span><span>Sugerido <b>${fmt(k.tot.sug, 1)}h</b></span><span>Definido <b>${fmt(k.tot.def, 1)}h</b></span><span>Realizado <b>${fmt(k.tot.real, 1)}h</b></span></div>` : ''}`;
 }
@@ -1892,7 +1903,7 @@ function pageEstudo() {
     ${sa ? '<p class="hint-p">O estudo vai para o <b>Diário</b> e conta nas horas, no Ciclo, no Edital, na Evolução, no Desempenho e nos Relatórios. As revisões <b>Checkpoint/Geral</b> <b>não</b> são alteradas; só o <b>% de acerto</b> de uma aula já existente (pelo Nº ou assunto informado) recebe suas questões.</p>' : `<p class="hint-p">O estudo vai para o <b>Diário</b> e já conta nas horas, no Ciclo e no Desempenho. Além disso, a <b>planilha da matéria</b> (menu Revisão Checkpoint) é atualizada sozinha: a aula é criada ou encontrada pelo <b>Nº da aula</b> (ou pelo nome do Aula/Assunto) e fica “Revisar Checkpoint” quando você marca <i>Finalizado</i>. A cada 4 aulas finalizadas, chega um checkpoint para revisar.</p>`}
 ${sol || sa ? '' : `    <details class="adv"><summary>Opções avançadas (pode ignorar)</summary>
       <div class="form-row" style="margin-top:8px">
-        <div>${f('Situação da aula na planilha', `<select class="cell" onchange="drSet('sit',this.value)">${[['auto', 'Automática (recomendado)'], ['', 'Não alterar'], ...SIT_AULA.map(x => [x, 'Sempre "' + x + '"'])].map(([v, l]) => `<option value="${v}"${d.sit === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`)}</div>
+        <div>${f('Situação da aula na planilha', `<select class="cell" onchange="drSet('sit',this.value)">${[['auto', 'Automática (recomendado)'], ['', 'Não alterar'], ...SIT_AULA.map(x => [x, 'Sempre "' + sitLbl(x) + '"'])].map(([v, l]) => `<option value="${v}"${d.sit === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`)}</div>
         <div>${f('Onde guardar o % de acerto', `<select class="cell" onchange="drSet('pctCampo',this.value)">${[['p1', '1ª resolução'], ['pc', 'Checkpoint'], ['prg', 'Revisão geral']].map(([v, l]) => `<option value="${v}"${d.pctCampo === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`)}</div></div>
       <div class="opt-help" style="margin-left:0">Cada aula da planilha tem 3 colunas de % de acerto. O padrão é guardar na “1ª resolução”; só mude se este estudo for um checkpoint ou uma revisão geral.</div></details>`}
 
@@ -2139,7 +2150,7 @@ function pageCheckpoint() {
 <b>Última revisão da matéria:</b> no fim, o último grupo pode ter menos de 4 aulas. Por isso existe o botão <b>“Matéria finalizada”</b>: ele marca onde terminamos e libera o checkpoint das aulas que sobraram.<br><br>
 <b>Revisão Geral</b> — quando você finaliza uma matéria completa, é hora de comemorar 🎉 e passá-la para o “modo revisão” para deixá-la consolidada. Como o ciclo de estudos deixa cada matéria numa fase, é difícil que todas acabem ao mesmo tempo. A revisão geral serve para revisar a matéria inteira (dar um refresh no conteúdo) e preparar um material de revisão para o futuro. Analise seu percentual de acertos total no PDF (1ª resolução + checkpoints):
 <ul><li>Abaixo de <b>70%</b>: refaça <b>todas</b> as questões marcadas.</li><li><b>70% ou mais</b>: refaça apenas as que <b>errou</b> e as marcadas como <b>“dúvida”</b>.</li></ul>
-<b>Situação das aulas:</b> Estudar → <b>Revisar Checkpoint</b> (aula finalizada) → <b>Revisão Geral</b> (checkpoint feito) → <b>Teoria ok</b> (só depois da revisão geral da matéria).
+<b>Situação das aulas:</b> Estudar → <b>Revisar Checkpoint</b> (aula finalizada) → <b>Aguardando Revisão Geral</b> (checkpoint feito) → <b>Teoria ok</b> (só depois da revisão geral da matéria).
 </div></details>
   <div class="card"><h3>🏁 Situação dos checkpoints</h3>
     <div class="kpi-grid" style="margin-bottom:${pend.length ? 14 : 0}px">${kpi('Para hoje', hoje.length, hoje.length ? 'checkpoint(s) liberado(s) hoje' : 'nenhum hoje', hoje.length ? 'warn' : 'good')}${kpi('Atrasadas', atr.length, atr.length ? 'liberado(s) e ainda não revisado(s)' : 'nenhuma atrasada', atr.length ? 'bad' : 'good')}${kpi('Revisão geral', rgs.length, rgs.length ? 'matéria(s) pronta(s) para a revisão geral' : 'nenhuma pendente', rgs.length ? 'warn' : 'good')}${kpi('Futuras', fut.length, 'próximo(s) checkpoint(s) em andamento')}</div>
@@ -2171,7 +2182,7 @@ function cpDetalhe(i) {
   ${S.cpRev.some(x => x.m === d.nome && x.obs) ? `<div class="card"><h3>📝 Observações das revisões</h3>${S.cpRev.filter(x => x.m === d.nome && x.obs).map(x => `<div class="hint"><b>Checkpoint ${x.k + 1}</b> (${fmtDate(x.data)}): ${esc(x.obs)}</div>`).join('')}</div>` : ''}
   <div class="card"><h3>📚 Aulas/assuntos da matéria</h3><div class="head-actions" style="margin-bottom:10px"><button class="btn-sec" onclick="addAula('${store}',${i})">➕ Aula</button><button class="btn-sec" onclick="cpDelDisc(${i})">🗑️ Excluir matéria daqui</button></div>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Aula</th><th>Aula/Assunto</th><th>Situação</th><th>% 1ª resolução</th><th>% Checkpoint</th><th>% Revisão geral</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="7"><div class="empty" style="padding:14px">Nenhuma aula ainda. Elas aparecem conforme você registra estudos (ou use ➕ Aula).</div></td></tr>'}</tbody></table></div>
-  <div class="legend-calc">Situação: <b>Estudar</b> → <b>Revisar Checkpoint</b> (aula finalizada) → <b>Revisão Geral</b> (checkpoint feito) → <b>Teoria ok</b> (após a revisão geral da matéria). Registrar um estudo com a mesma matéria e o mesmo nº da aula atualiza esta tabela.</div></div></div>`;
+  <div class="legend-calc">Situação: <b>Estudar</b> → <b>Revisar Checkpoint</b> (aula finalizada) → <b>Aguardando Revisão Geral</b> (checkpoint feito) → <b>Teoria ok</b> (após a revisão geral da matéria). Registrar um estudo com a mesma matéria e o mesmo nº da aula atualiza esta tabela.</div></div></div>`;
 }
 
 /* ----- Finalizado no Diário/Registrar → aula "Revisar Checkpoint" nas planilhas (alimenta o Checkpoint) ----- */
@@ -2763,12 +2774,12 @@ function plInicioCard() {
 const GUIA = [
   { k: 'metodo', ico: '🧭', t: 'Entenda o método em 1 minuto', manual: true,
     porque: 'Antes de preencher qualquer coisa, vale entender o caminho que cada matéria percorre aqui. O resto do sistema só automatiza isso.',
-    html: () => `<div class="gd-flow"><span>📖 Estudo novo</span>›<span>🏁 Checkpoint a cada 4 aulas</span>›<span>🏆 Revisão geral</span>›<span>✅ Teoria ok</span>›<span>📘 Estudo sólido</span>›<span>🎯 Pós-edital</span></div>
+    html: () => `<div class="gd-flow"><span>📖 Estudo novo (Iniciada)</span>›<span>🏁 Checkpoints a cada 4 aulas</span>›<span>✅ Matéria finalizada</span>›<span>🏆 Revisão Geral</span>›<span>🎓 Teoria ok</span>›<span>📘 Estudo Sólido</span>›<span>🎯 Pós-edital</span></div>
       <p>Você <b>registra cada sessão de estudo</b> (Registrar estudo) e o sistema alimenta sozinho o Diário, o Ciclo, o Desempenho e as revisões. Você só precisa registrar com atenção.</p>
       <ul><li><b>Planilhas:</b> Controle Estudo Total (Diário, Evolução, Ciclo de Estudos, Seleção de Matérias), Pré-edital e Pós-edital.</li>
       <li><b>Planejamento:</b> o que estudar hoje e na semana, o modo de alocação (recomendado: Ciclo de Matérias) e as metas.</li>
-      <li><b>Revisão Checkpoint:</b> o que revisar e quando. <b>Desempenho</b> e <b>Relatório de Matérias</b>: como você está indo.</li></ul>
-      <p class="gd-tip">💡 Você pode voltar aqui a qualquer momento pelo botão <b>🚀 Comece Aqui</b>, no menu lateral. Nada é bloqueado: faça no seu ritmo.</p>`,
+      <li><b>Revisão Checkpoint:</b> o que revisar e quando. <b>Desempenho</b> e <b>Relatório de Matérias</b>: como você está indo.</li><li><b>O caminho de cada matéria</b>, etapa por etapa (o que o programa muda sozinho e o que é você quem faz), está explicado no quadro no topo do <b>Ciclo de Estudos</b> e da <b>Revisão Checkpoint</b>.</li></ul>
+      <p class="gd-tip">💡 Você pode voltar aqui a qualquer momento pelo menu lateral: o botão <b>🚀 Comece Aqui</b> e, depois de finalizado, o menu <b>Instruções e avisos</b>. Nada é bloqueado: faça no seu ritmo.</p>`,
     ir: null },
   { k: 'editais', ico: '📋', t: 'Inclua os editais e compare as matérias', auto: () => S.controle.editais.some(e => e.materias.some(Boolean)),
     porque: 'Comparar até 5 editais mostra quais matérias mais se repetem. Assim você prioriza o que realmente aparece nas provas que quer fazer.',
@@ -2776,7 +2787,7 @@ const GUIA = [
     ir: ['Ir para Seleção de Matérias', () => { UI.ctlOpen = true; UI.tab.controle = 'selecao'; nav('controle'); }], pular: true },
   { k: 'ciclo', ico: '🔁', t: 'Monte o seu Ciclo de Estudos', auto: () => S.controle.ciclo.rows.some(r => r.materia),
     porque: 'O Ciclo é a lista de matérias que você estuda AGORA. Ele define o tempo semanal de cada uma e alimenta o Planejamento.',
-    html: () => `<ol><li>Abra <b>Controle Estudo Total › Ciclo de Estudos</b> e clique em <b>➕ Matéria no ciclo</b>.</li><li>Escolha a matéria, a <b>Fase</b> (Novo = estudando pela primeira vez; Sólido = já finalizada, em revisão), a <b>Dificuldade</b> (1 a 5) e a <b>Extensão</b> (nº de aulas).</li><li>Recomendação: no máximo <b>6 matérias ao mesmo tempo</b>. As demais ficam para o próximo ciclo.</li></ol><p class="gd-tip">A <b>Situação</b> (Pendente → Iniciada → Finalizada) muda sozinha conforme você estuda e finaliza a matéria.</p>`,
+    html: () => `<ol><li>Abra <b>Controle Estudo Total › Ciclo de Estudos</b> e clique em <b>➕ Matéria no ciclo</b>.</li><li>Escolha a matéria, a <b>Fase</b> (Novo = estudando pela primeira vez; Sólido = teoria já concluída, em revisão por questões), a <b>Dificuldade</b> (1 a 5) e a <b>Extensão</b> (nº de aulas).</li><li>Recomendação: no máximo <b>6 matérias ao mesmo tempo</b>. As demais ficam para o próximo ciclo.</li></ol><p class="gd-tip">O <b>Status</b> da matéria (Pendente → Iniciada → Finalizada → Teoria ok) acompanha o seu estudo e as revisões. No topo da página há um quadro explicando cada etapa.</p>`,
     ir: ['Ir para o Ciclo de Estudos', () => { UI.ctlOpen = true; UI.tab.controle = 'ciclo'; nav('controle'); }] },
   { k: 'horas', ico: '⏰', t: 'Defina quantas horas por semana você vai estudar', auto: () => num(S.controle.horas) > 0,
     porque: 'Com o total de horas semanais, o sistema sugere quanto tempo cada matéria merece (por dificuldade, extensão e fase).',
@@ -2788,7 +2799,7 @@ const GUIA = [
     ir: ['Abrir Montar planejamento', () => { UI.tab.plano = 'montar'; UI.mtab = 'cronograma'; goPlano('montar'); }] },
   { k: 'estudo', ico: '⏱️', t: 'Registre o seu primeiro estudo', auto: () => S.diario.length > 0,
     porque: 'Este é o coração do sistema. Cada registro alimenta Diário, Ciclo, Desempenho, Revisão Checkpoint e Relatório.',
-    html: () => `<ol><li>Em <b>Registrar estudo</b>, escolha a <b>matéria</b>, o <b>Nº da aula</b> e o <b>Aula/Assunto</b> (obrigatórios: ligam o estudo à Revisão Checkpoint).</li><li>Escolha o <b>tipo de estudo</b> (PDF, videoaula, revisão teórica, questões; “Sólido” só para matérias já em Estudo Sólido).</li><li>Cronometre (livre ou pomodoro) ou informe o tempo manualmente, lance os <b>acertos e erros</b> das questões e salve.</li><li>Terminou a aula inteira? Marque <b>Finalizado</b>.</li></ol><p class="gd-tip">🧠 Antes de cada sessão, separe 10% do tempo para revisar ativamente o assunto da última sessão da matéria (microrrevisão).</p>`,
+    html: () => `<ol><li>Em <b>Registrar estudo</b>, escolha a <b>matéria</b>, o <b>Nº da aula</b> e o <b>Aula/Assunto</b> (obrigatórios em PDF e Videoaula: ligam o estudo à Revisão Checkpoint).</li><li>Escolha o <b>tipo de estudo</b>: <b>PDF</b> e <b>Videoaula</b> (aula de uma matéria), ou <b>Avulso</b>, <b>Questões</b>, <b>Revisão Teórica</b> e <b>Sólido</b>. Nestes quatro, o Nº da aula e o assunto são opcionais e o estudo <b>não entra</b> na Revisão Checkpoint nem na Revisão Geral (só nas horas e nas estatísticas). “Sólido” só aparece para matérias já em Estudo Sólido.</li><li>Cronometre (livre ou pomodoro) ou informe o tempo manualmente, lance os <b>acertos e erros</b> das questões e salve.</li><li>Terminou a aula inteira? Marque <b>Finalizado</b>. Essa caixinha é <b>da aula</b>, não da matéria (a matéria é finalizada na Revisão Checkpoint).</li></ol><p class="gd-tip">🧠 Antes de cada sessão, separe 10% do tempo para revisar ativamente o assunto da última sessão da matéria (microrrevisão).</p>`,
     ir: ['Ir para Registrar estudo', () => nav('estudo')] },
   { k: 'aulas', ico: '📚', t: 'Aulas/Assuntos por matéria (opcional)', manual: true, pular: true,
     porque: 'Não é obrigatório preencher. Serve para organizar as aulas de cada matéria e ter sugestões prontas na hora de registrar.',
@@ -2796,7 +2807,7 @@ const GUIA = [
     ir: ['Abrir Aulas/Assuntos', () => { UI.ctlOpen = true; UI.tab.controle = 'assuntos'; nav('controle'); }] },
   { k: 'revisao', ico: '🏁', t: 'Entenda as revisões (Checkpoint e Revisão Geral)', manual: true,
     porque: 'Revisar na hora certa é o que transforma estudo em memória de longo prazo.',
-    html: () => `<ul><li><b>Revisão Checkpoint:</b> a cada <b>4 aulas finalizadas</b> chega um checkpoint. Você revisa o bloco e lança acertos/erros: o % é calculado sozinho.</li><li><b>Matéria finalizada:</b> quando terminar a matéria inteira, finalize-a na Revisão Checkpoint. O último bloco (mesmo com menos de 4 aulas) ganha o checkpoint.</li><li><b>Revisão Geral:</b> depois dos checkpoints, revise a matéria toda. Você pode <b>agendar a data</b>; no dia aparece um aviso.</li><li><b>Teoria ok:</b> ao concluir a revisão geral. Depois você pode passar a matéria para <b>Estudo Sólido</b> (revisão contínua por questões) e registrar essas sessões com o tipo “Sólido”.</li></ul>`,
+    html: () => `<ul><li><b>Revisão Checkpoint:</b> a cada <b>4 aulas finalizadas</b> chega um checkpoint. Você revisa o bloco e lança acertos/erros: o % é calculado sozinho.</li><li><b>Matéria finalizada:</b> quando terminar a teoria da matéria inteira, clique em <b>“Matéria finalizada”</b> na Revisão Checkpoint. O status no Ciclo passa para Finalizada, e as últimas aulas que sobraram (menos de 4) ganham o último checkpoint.</li><li><b>Revisão Geral:</b> depois de fazer todos os checkpoints, as aulas ficam “Aguardando Revisão Geral”. Aí você revisa a matéria toda. Você pode <b>agendar a data</b>; no dia aparece um aviso.</li><li><b>Teoria ok:</b> ao registrar a Revisão Geral (o Ciclo passa a mostrar Teoria ok). Depois você pode passar a matéria para <b>Estudo Sólido</b> (revisão contínua por questões) e registrar essas sessões com o tipo “Sólido”.</li></ul>`,
     ir: ['Abrir Revisão Checkpoint', () => nav('checkpoint')] },
   { k: 'acompanhe', ico: '📊', t: 'Acompanhe o seu desempenho', manual: true,
     porque: 'Dados regulares mostram onde você está forte e onde precisa corrigir o rumo.',
@@ -2804,7 +2815,7 @@ const GUIA = [
     ir: ['Abrir Desempenho', () => nav('desempenho')] },
   { k: 'pos', ico: '🎯', t: 'Quando sair o edital: Pós-edital (e guarde um backup)', manual: true, ultimo: true,
     porque: 'Quando o edital do concurso for publicado, é hora de trocar de fase. Faça isso só nessa hora: por enquanto, basta saber que existe.',
-    html: () => `<ul><li><b>Estudo Total — Pós-edital:</b> preencha o Edital (matérias, nº de questões, pesos) e a Estimativa de Tempo antes de iniciar.</li><li>Clique em <b>▶️ Iniciar Pós-edital</b>: o Desempenho e as métricas passam a mostrar só o que você estudar daí em diante. Em <b>Planejamento › Pós-edital</b> há data da prova, tempo disponível e checklists.</li><li>Ao final, <b>🏁 Finalizar Pós-edital</b> soma tudo de volta aos dados gerais.</li></ul><p class="gd-tip">💾 Os dados ficam no seu navegador. Em <b>Importar planilhas</b> e <b>Exportar planilhas</b> (menu lateral) você traz e leva seus dados do Excel/Google Sheets, e em <b>Backup e dados</b> fica o backup completo. Faça backup de vez em quando!</p>`,
+    html: () => `<ul><li><b>Estudo Total — Pós-edital:</b> preencha o Edital (matérias, nº de questões, pesos) e a Estimativa de Tempo antes de iniciar.</li><li>Clique em <b>▶️ Iniciar Pós-edital</b>: o Desempenho e as métricas passam a mostrar só o que você estudar daí em diante. Em <b>Planejamento › Pós-edital</b> há data da prova, tempo disponível e checklists.</li><li>Ao final, <b>🏁 Finalizar Pós-edital</b> soma tudo de volta aos dados gerais.</li></ul><p class="gd-tip">💾 Os dados ficam no seu navegador. Em <b>Importar / Exportar</b> (menu lateral) você traz e leva seus dados do Excel/Google Sheets, e em <b>Backup e dados</b> fica o backup completo. Faça backup de vez em quando!</p>`,
     ir: ['Ver Pós-edital', () => nav('finpos')] }
 ];
 const guiaOk = i => { const g = GUIA[i]; return !!((S.guia.ok || {})[g.k] || (g.auto && g.auto())); };
