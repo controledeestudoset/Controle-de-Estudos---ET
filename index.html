@@ -3125,6 +3125,12 @@ function pageExportar() {
 function pageBackup() {
   return `<div class="container">${head('Backup e dados', 'Faça cópias de segurança de tudo e, se precisar, recomece do zero.')}
   ${armAviso()}
+  <div class="card" style="border:2px solid var(--danger)"><h3 style="color:var(--danger)">🧹 Cuidado ao limpar o navegador</h3>
+  <p class="hint-p">Seus dados ficam guardados no <b>armazenamento deste navegador</b>. Por isso:</p>
+  <ul class="hint-p" style="margin:6px 0 8px 18px;line-height:1.55"><li><b>Limpar só o "cache"</b> (imagens e arquivos em cache) <b>não apaga</b> seus registros.</li>
+  <li><b>Limpar "cookies e dados de sites"</b> (ou "dados de navegação", "todo o período") <b>apaga tudo</b> deste programa, inclusive a chave de acesso. O mesmo acontece ao <b>desinstalar o navegador</b>, usar <b>janela anônima</b> (os dados somem ao fechar) ou trocar de aparelho/navegador.</li>
+  <li>Programas de "limpeza" do celular ou do computador também podem apagar esses dados.</li></ul>
+  <p class="hint-p"><b>Antes de qualquer limpeza, faça o backup (.json) abaixo</b> e guarde o arquivo fora do aparelho. Se a sincronização com o Google Drive estiver ligada, ela ajuda a recuperar, mas <b>não substitui o backup</b>.</p></div>
   <div class="av-hero">💾 Seus dados ficam <b>neste navegador</b> (e no seu Google Drive, se a sincronização estiver ligada). A sincronização <b>não substitui o backup</b>: faça backup com frequência (sugestão: toda semana) e <b>guarde o arquivo fora do aparelho</b> (Google Drive, OneDrive, e-mail ou pendrive).</div>
   <div class="grid2"><div class="card"><h3>⬇️ Fazer backup</h3><p class="hint">Salva <b>tudo</b> (inclusive o que não cabe nas planilhas: assunto, questões, Estudo Sólido, metas, planejamento) em um arquivo .json.</p><div class="head-actions"><button class="btn-primary" onclick="exportJSON()">⬇️ Baixar backup (.json)</button></div></div>
   <div class="card"><h3>⬆️ Restaurar backup</h3><p class="hint">Volta os dados de um arquivo .json de backup. <b>Atenção:</b> isso <b>substitui todos</b> os dados atuais. Pedimos duas confirmações.</p><div class="head-actions"><label class="btn-sec" style="cursor:pointer">⬆️ Escolher arquivo de backup<input type="file" accept=".json" hidden onchange="restaurarAsk(this)"></label></div></div></div>
