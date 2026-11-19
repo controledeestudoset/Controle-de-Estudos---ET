@@ -557,15 +557,7 @@ const CHAVES_AUTORIZADAS = [
   'ET-PAULO-284',
   'ET-RODRIGO-615',
   'ET-MARIANA-392',
-  'ET-THIAGO-708',
-  'ET-ISA-611',
-  'ET-ROBERTO-145',
-  'ET-MATHEUS-283',
-  'ET-RAFAEL-321',
-  'ET-GUILHERME-123',
-  'ET-NAZLI-111",
-  'ET-MATHEUS-144'
-
+  'ET-THIAGO-708'
 ];
 
 /* Limpa hífen, espaços e pontuação para comparar a chave sem erro */
@@ -1971,7 +1963,8 @@ function drFim(el) {
 }
 function saveEstudo() {
   const d = DR, materia = canonMateria(d.materia);
-  if (!materia) { toast('Escolha a matéria.'); return; }
+  /* Questões e Avulso podem ser lançados sem matéria (questões variadas / estudo geral): entram nos totais gerais, só não vão para uma matéria específica */
+  if (!materia && d.forma !== 'Questões' && d.forma !== 'Avulso') { toast('Escolha a matéria. (Só os tipos “Questões” e “Avulso” podem ser registrados sem matéria.)'); return; }
   const sol = d.forma === 'Sólido', sa = semAula(d.forma);
   if (sol && !ehSolida(materia)) { d.forma = 'PDF'; drSave(); render(); toast('O tipo “Sólido” só pode ser usado em matérias com status Sólido (Ciclo de Estudos). Tipo voltou para PDF.'); return; }
   if (!sa && parseAulaNum(d.aula) == null) { toast('Preencha o Nº da aula (obrigatório) — ele liga o estudo à Revisão Checkpoint.'); return; }
@@ -1983,20 +1976,20 @@ function saveEstudo() {
   if (!(min > 0 || (isNum(d.pi) && isNum(d.pf)) || isNum(d.vi) || q > 0)) { toast('Informe o tempo (cronômetro ou manual), páginas, videoaulas ou questões.'); return; }
   if (isNum(d.pi) && isNum(d.pf) && num(d.pf) < num(d.pi)) { toast('A página final é menor que a inicial.'); return; }
   if (isNum(d.vi) && isNum(d.vf) && num(d.vf) < num(d.vi)) { toast('A videoaula final é menor que a inicial.'); return; }
-  ensureMateria(materia);
+  if (materia) ensureMateria(materia);
   const e = sol ? { materia, aula: '', assunto: '', forma: 'Sólido', pi: '', pf: '', vi: '', vf: '', vmin: '', data: d.data || todayISO(), min, q: q || '', a: q ? num(d.ac) : '', obs: d.obs.trim(), taskId: null, fim: false } : { materia, aula: String(d.aula || '').trim(), assunto: d.assunto.trim(), forma: d.forma, pi: d.pi, pf: d.pf, vi: d.vi, vf: d.vf, vmin: d.vmin, data: d.data || todayISO(), min, q: q || '', a: q ? num(d.ac) : '', obs: d.obs.trim(), taskId: null, fim: sa ? false : !!d.fim };
   e.ts = Date.now(); e.id = uid(); S.diario.push(e); if (!sa) lembrarAssunto(materia, e.assunto, parseAulaNum(e.aula));
   const fx = ['Diário e Evolução'];
-  const cr = S.controle.ciclo.rows.find(r => r.materia === materia);
+  const cr = materia ? S.controle.ciclo.rows.find(r => r.materia === materia) : null;
   if (cr) { fx.push('Ciclo (+' + fmt(min / 60, 1) + 'h)'); if (cr.status === 'Pendente') cr.status = 'Iniciada'; }
-  const er = S.pos.edital.rows.find(r => r.materia === materia);
+  const er = materia ? S.pos.edital.rows.find(r => r.materia === materia) : null;
   if (er) { fx.push('Edital pós (+' + fmt(min / 60, 1) + 'h)'); if (er.status === 'Pendente') er.status = 'Iniciada'; }
   if (!sa) fx.push(...aplicarNasPlanilhas(e, d, q)); else if (!sol && q > 0 && (parseAulaNum(e.aula) != null || e.assunto)) { const as = aulaDoRegistro(e, false); as.forEach(a => { a[d.pctCampo] = Math.round(num(d.ac) / q * 1000) / 10; }); fx.push(as.length ? `% de acerto da aula ${as[0].n} (${as[0][d.pctCampo]}%)` : 'fora das revisões Checkpoint/Geral'); } else fx.push(sol ? 'Estudo Sólido' : d.forma === 'Avulso' ? 'Estudo avulso (fora das revisões)' : 'fora das revisões Checkpoint/Geral');
   if (e.fim) fx.push('aula/assunto finalizado ✔');
   reconcileFim(); syncStatus();
   const keep = { chkRev: d.chkRev, chkAula: d.chkAula, pctCampo: d.pctCampo, pomo: Object.assign(dr0().pomo, { on: d.pomo.on, min: d.pomo.min }) };
   DR = Object.assign(dr0(), keep); drSave(); save(); render();
-  toast(`✅ Lançamento salvo: ${fmtHM(min, false)} de ${materia}. Atualizado: ${fx.join(' · ')}.`);
+  toast(`✅ Lançamento salvo: ${fmtHM(min, false)} de ${materia || 'questões sem matéria'}. Atualizado: ${fx.join(' · ')}.`);
 }
 function aplicarNasPlanilhas(e, d, q) {
   const fx = [], n0 = parseAulaNum(e.aula), nome = x => x === 'pre' ? 'Pré-edital' : 'Pós-edital';
@@ -2037,7 +2030,7 @@ function pageEstudo() {
   <div class="micro-av"><span class="micro-ic">🧠</span><div><b>Microrrevisão</b> — Não esqueça de separar 10% do seu tempo para revisar ativamente o assunto da última sessão de estudos da matéria que for estudar agora.<div class="micro-last" id="drMicro"></div></div></div>
   ${plHojeChips()}
   <div class="grid2" style="align-items:start"><div class="col-l"><div class="card"><h3>📖 O que vamos estudar</h3>
-    ${f('Matéria', inp('materia', { list: true, ph: minhasMaterias().length ? 'Escolha uma matéria do seu edital' : 'Inclua matérias no Edital/Ciclo/planilhas' }))}
+    ${f('Matéria', inp('materia', { list: true, ph: minhasMaterias().length ? 'Escolha uma matéria do seu edital' : 'Inclua matérias no Edital/Ciclo/planilhas' }) + ((d.forma === 'Questões' || d.forma === 'Avulso') ? '<div class="legend-calc" style="margin-top:4px">Opcional neste tipo: deixe em branco para questões variadas (entram nos totais gerais, não em uma matéria).</div>' : ''))}
     ${sol ? f('Data', `<input class="cell" type="date" value="${esc(d.data || today)}" oninput="drSet('data',this.value)">`) : ''}
     ${sol ? '' : `
     <div class="form-row">${f(`Nº da aula ${sa ? '<span class="opt">(opcional)</span>' : '<span class="req">*</span><span class="qm" data-tip="Obrigatório: é o número que liga este estudo à Revisão Checkpoint (um bloco a cada 4 aulas finalizadas). Sem ele a aula não entra na revisão.">?</span>'}`, inp('aula', { type: 'number', ph: 'Ex: 3' }))}${f('Data', `<input class="cell" type="date" value="${esc(d.data || today)}" oninput="drSet('data',this.value)">`)}</div>
